@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import argparse
 import pandas as pd
 import numpy as np
 import math
@@ -75,7 +78,7 @@ def plotTMB(inputDF, scale, Yrange = "adapt", cutoff = 0, output = "TMB_plot.png
         print("ERROR: cutoff value is less than 0")
         return
     plt.xlim(0,2*ngroups)
-    print(len(names[0]))
+    # print(len(names[0]))
     plt.ylim(ymin,ymax)
     yticks_loc = range(ymin,ymax+1,1)
     plt.yticks(yticks_loc,list(map((lambda x: 10**x), list(yticks_loc)))) 
@@ -102,3 +105,45 @@ def plotTMB(inputDF, scale, Yrange = "adapt", cutoff = 0, output = "TMB_plot.png
     plt.xticks(np.arange(1, 2*ngroups+1, step = 2),names,rotation = -35,ha = 'right');
     fig.subplots_adjust(top = ((ymax - ymin) * 0.7 + bottomm) / fig_length, bottom = bottomm / fig_length, left = leftm / fig_width, right=1 - rightm / fig_width)
     plt.savefig(output)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument("-i", "--input", default=None, help="Input tumor tmb data")
+    parser.add_argument("-o", "--output", default="TMB_plot.pdf", help="Output plot file name")
+    scale = parser.add_mutually_exclusive_group()
+    scale.add_argument("--exome", action='store_true', default=False, help="Assumes sequencing size of 55 Mb for WXS")
+    scale.add_argument("--genome", action='store_true', default=False, help="Assumes sequencing size of 2800 Mb for WGS")
+    scale.add_argument("-s", "--scale", type=int, help="An integer indicating the scale of the sequencing")
+    yrange = parser.add_mutually_exclusive_group()
+    yrange.add_argument("--adapt", action='store_true', default=False, help="Make the plot automatically adapt to the given datase")
+    yrange.add_argument("--cancer", action='store_true', default=False, help="Set the range to 0.001 to 1000")
+    yrange.add_argument("--yrange", nargs=2, help="A list of two numbers of powers of 10 indicating the Y-axis range. Example: 0.1 100")
+    parser.add_argument("--cutoff", type=float, default=1, help="The minimum number of mutations required in a sample to be included in a plot (default: %(default)s)")
+    parser.add_argument("--redbar", default="median", nargs='?', choices=["median", "mean"], help="The redbar value can either be \"median\" or \"mean\" which is the value at which the red bar appears (default: %(default)s)")
+    parser.add_argument("--yaxis", action='store_true', default=None, help="Whether to show yaxis label or not (default: %(default)s)")
+    parser.add_argument("--ascend", action='store_true', default=True, help="Wether to arrange data in ascending order of the height of the redbar (default: %(default)s)")
+    parser.add_argument("--leftm", type=float, default=1, help="left margin (default: %(default)s)")
+    parser.add_argument("--rightm", type=float, default=0.3, help="right margin (default: %(default)s)")
+    parser.add_argument("--topm", type=float, default=1, help="top margin (default: %(default)s)")
+    parser.add_argument("--bottomm", type=float, default=1, help="bottom margin (default: %(default)s)")
+    args = parser.parse_args()
+
+    # check input
+    if args.input is None:
+        print("Input is required\n");
+        parser.print_help()
+
+    df = pd.read_table(args.input)
+    if args.exome:
+        scl = "exome"
+    elif args.genome:
+        scl = "genome"
+    else:
+        scl = args.scale
+    if args.adapt:
+        yr = "adapt"
+    elif args.cancer:
+        yr = "cancer"
+    else:
+        yr = args.yrange
+    plotTMB(df, scl, Yrange=yr, cutoff=args.cutoff, output=args.output, redbar=args.redbar, yaxis=args.yaxis, ascend=args.ascend, leftm=args.leftm, rightm=args.rightm, topm=args.topm, bottomm=args.bottomm)

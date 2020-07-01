@@ -127,6 +127,17 @@ plotTMB(inputDF,"genome",cutoff =2)
 ```
 ![ ](plots/E3_cutoff.png?raw=true "Exmaple 7: Cutoff")
 
+## Wrapper
+
+* Usage:
+
+```
+./TMB_plotter.py -i plots/exampleInput1_pcawg_30+.txt --genome --adapt -o plots/test.pdf
+```
+* Output
+
+![ ](plots/test.svg?raw=true "Test output")
+
 ## TODO
 
-- [ ] make a wrapper with argparse
+- [x] make a wrapper with argparse
